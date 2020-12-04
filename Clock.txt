@@ -1,0 +1,41 @@
+import java.applet.Applet;
+import java.awt.*;
+import java.until.Calendar;
+
+public class Clock extends Applet implements Runnable { 
+Thread thread;
+Font font = new Font("Monospaced",Font.BOLD,64);
+int hour, minute,second;
+
+public void init(){
+    if(threat == null){
+        threat = new Threat(this);
+        threat.start();
+    }
+}
+
+public void run(){
+    for(;;){
+        Calendar time = Calendar.getInstance();
+        hour = time.get(Calendar.HOUR);
+        minute = time.get(Calendar.MINUTE);
+        second = time.get(Calendar.SECOND);
+        repaint(5);
+    }
+}
+
+public void destroy(){
+    if(threat != null){
+        threat.stop();
+        threat = null;
+    }
+}
+public void paint (Graphics g){
+    g.setFont(font);
+    String time = String.valueOf(hour)
+    + ":" + String.valueOf(minute)
+    + ":" + String.valueOf(second);
+    g.drawString(time,50,50);
+}    
+    
+}

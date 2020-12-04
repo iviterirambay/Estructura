@@ -1,0 +1,132 @@
+package dijkstra;
+
+import net.datastructures.AdjacencyListGraph;
+import net.datastructures.Vertex;
+import net.datastructures.Edge;
+import java.util.Iterator;
+import java.util.Stack;
+import java.util.PriorityQueue;
+import java.util.Comparator;
+
+public class Main {
+
+    public static void main(String[] args) {
+        String vertices[] = {"V1", "V2", "V3", "V4", "V5", "V6"};
+        String arcos[] = {"V1,V2", "V1,V3", "V1,V5", "V3,V5","V5,V6", "V6,V4", "V5,V4"};
+        int pesos[] = {3, 4, 8,3,3, 2, 7};
+        Stack<Vertex> camino = new <Vertex>Stack();
+        Vertex<DataVertex> V, V1 = null, V2 = null;
+        DataVertex Datos;
+
+
+        //agrego los vertices
+        AdjacencyListGraph G = new AdjacencyListGraph();
+        for (int i = 0; i < vertices.length; i++) {
+            Datos = new DataVertex();
+            Datos.id = vertices[i];
+            Datos.visitado = false;
+            Datos.previo = null;
+            Datos.distancia = 1000;
+            V = G.insertVertex(Datos);
+        }
+        //agrego los pesos
+        for (int i = 0; i < arcos.length; i++) {
+            String v1_id = arcos[i].substring(0, 2);
+            String v2_id = arcos[i].substring(3, 5);
+            V1 = BuscarVertice(G, v1_id);
+            V2 = BuscarVertice(G, v2_id);
+            if (V1 != null & V2 != null) {
+                G.insertEdge(V1, V2, pesos[i]);
+            }
+        }
+
+        V = BuscarVertice(G, "V1");
+        //calculo los caminos minimos con el vertice inicial V1
+        Caminos_dijkstra(G, V);
+	//Extraigo el camino minimo a un vertice dado
+        camino = GeneraCamino(G, "V4");
+	//Saco de la pila el camino
+        while (!camino.isEmpty()) {
+            V1 = camino.pop();
+            System.out.println(V1.element().id +" - "+V1.element().distancia);
+        }
+
+    }
+
+    public static Vertex BuscarVertice(AdjacencyListGraph G, String id) {
+        Vertex<DataVertex> V;
+        Iterator listv = G.vertices().iterator();
+
+        while (listv.hasNext()) {
+            V = (Vertex) listv.next();
+            if (V.element().id.compareTo(id) == 0) {
+                return (V);
+            }
+        }
+
+        return (null);
+    }
+
+    public static void Caminos_dijkstra(AdjacencyListGraph G, Vertex V0) {
+        PriorityQueue<Vertex> ColaPrioridad = new PriorityQueue<Vertex>(20,
+                new Comparator<Vertex>() {
+                    public int compare(Vertex i, Vertex j) {
+                        Vertex<DataVertex> Vj = i;
+                        Vertex<DataVertex> Vi = j;
+                        return (Vi.element().distancia - Vj.element().distancia);
+                    }
+                }
+        );
+
+        Vertex<DataVertex> Ends[];
+        Vertex<DataVertex> V_adj, U;
+        Iterator<Edge> liste;
+        Edge<Integer> E;
+        int distancia_por_U = 0;
+
+	//coloco el primer el vertice
+        U=V0;
+        U.element().distancia=0;
+        ColaPrioridad.offer(U);
+
+        while (!ColaPrioridad.isEmpty()) {
+            U = ColaPrioridad.poll();//saco el vertice con menor distancia
+            liste = G.incidentEdges(U).iterator(); //Saco sus arcos
+            while (liste.hasNext()) {
+                E = liste.next();
+                Ends = G.endVertices(E); 
+                if (Ends[0] == U) { //reviso si hay un camino menor
+                    V_adj = Ends[1];
+                    distancia_por_U = U.element().distancia + E.element();
+                    if (distancia_por_U < V_adj.element().distancia) { 
+                        V_adj.element().distancia = distancia_por_U;
+                        V_adj.element().previo = U; 
+                        ColaPrioridad.offer(V_adj);//actualizao la distancia y encolo el nuevo vertice
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    public static Stack<Vertex> GeneraCamino(AdjacencyListGraph G, String id) {
+        Vertex<DataVertex> V, P;
+        Stack<Vertex> camino = new <Vertex>Stack();
+
+        V = BuscarVertice(G, id);
+        while (V != null) { //coloco en la pila los vertices previous hasta el inicio
+            camino.push(V);
+            V = V.element().previo;
+        }
+        return (camino);
+    }
+
+    public static class DataVertex {
+
+        String id;
+        Boolean visitado;
+        Vertex previo;
+        int distancia;
+    }
+}
